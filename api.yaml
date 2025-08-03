@@ -198,9 +198,9 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: offset
+        - name: page
           in: query
-          description: offset
+          description: page
           schema:
             type: integer
             format: int32
@@ -218,9 +218,9 @@ paths:
       summary: Searching posts by geo
       description: Searching posts by geo
       parameters:
-        - name: offset
+        - name: page
           in: query
-          description: offset for posts
+          description: page for posts
           schema:
             type: integer
             format: int32
@@ -290,9 +290,9 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: offset
+        - name: page
           in: query
-          description: offset for comments
+          description: page for comments
           schema:
             type: integer
             format: int32
