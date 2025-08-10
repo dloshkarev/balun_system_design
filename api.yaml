@@ -5,14 +5,53 @@ info:
 tags:
   - name: users
     description: Users operations
-  - name: post
+  - name: posts
     description: Post operations
+  - name: reactions
+    description: Entities reactions
   - name: feed
     description: Post feed operations
-  - name: comment
+  - name: comments
     description: Post comments operations
+  - name: blobs
+    description: Upload binaries
 paths:
-  /api/v1/user/subscribe/{userID}:
+  /api/v1/blobs/photos/{userID}:
+    post:
+      tags:
+        - blobs
+      summary: Upload new photo
+      description: Upload new photo
+      parameters:
+        - name: userID
+          in: path
+          description: author ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: photo data
+        content:
+          image/jpeg: {}
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoUploadResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:blobs
+  /api/v1/user/subscription/{userID}:
     post:
       tags:
         - users
@@ -29,7 +68,7 @@ paths:
       responses:
         '200':
           description: Successful operation
-        default:
+        '500':
           description: Unexpected error
           content:
             application/json:
@@ -38,45 +77,10 @@ paths:
       security:
         - travel_hunt_auth:
             - write:post
-  /api/v1/post/photo/{userID}:
+  /api/v1/posts:
     post:
       tags:
-        - post
-      summary: Upload new photo
-      description: Upload new photo
-      parameters:
-        - name: userID
-          in: path
-          description: author ID
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        description: Upload new photo
-        content:
-          image/jpeg: {}
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PhotoUploadResponse'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-      security:
-        - travel_hunt_auth:
-            - write:post
-  /api/v1/post:
-    post:
-      tags:
-        - post
+        - posts
       summary: Add a new post
       description: Add a new post to user feed
       requestBody:
@@ -95,34 +99,17 @@ paths:
                 $ref: '#/components/schemas/PostResponse'
         '400':
           description: Invalid input
-        '422':
-          description: Validation exception
-        default:
-          description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      security:
-        - travel_hunt_auth:
-            - write:post
-  /api/v1/post/reaction:
-    post:
-      tags:
-        - post
-      summary: Add a new post reaction
-      description: Add a new post reaction
-      requestBody:
-        description: Add a new post reaction
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PostReactionRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-        default:
+        '422':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
           description: Unexpected error
           content:
             application/json:
@@ -133,7 +120,7 @@ paths:
             - write:post
     put:
       tags:
-        - post
+        - posts
       summary: Edit post
       description: Edit user post
       requestBody:
@@ -152,9 +139,17 @@ paths:
                 $ref: '#/components/schemas/PostResponse'
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         '422':
           description: Validation exception
-        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
           description: Unexpected error
           content:
             application/json:
@@ -163,10 +158,65 @@ paths:
       security:
         - travel_hunt_auth:
             - write:post
-  /api/v1/post/{postID}:
+  /api/v1/reactions/posts:
+    post:
+      tags:
+        - reactions
+      summary: Add a new post reaction
+      description: Add a new post reaction
+      requestBody:
+        description: Post reaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostReactionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:post
+  /api/v1/reactions/posts/{postID}:
     get:
       tags:
-        - post
+        - reactions
+      summary: Get post reactions
+      description: Get post reactions
+      parameters:
+        - name: postID
+          in: path
+          description: ID of post
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostReactionsResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:reactions
+  /api/v1/posts/{postID}:
+    get:
+      tags:
+        - posts
       summary: Read single post
       description: Read single post
       parameters:
@@ -184,7 +234,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PostResponse'
-  /api/v1/post/feed/{userID}:
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/posts/feed/{userID}:
     get:
       tags:
         - feed
@@ -211,7 +267,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FeedResponse'
-  /api/v1/post/search:
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/posts/search:
     get:
       tags:
         - feed
@@ -228,14 +290,12 @@ paths:
           in: query
           description: latitude
           schema:
-            type: integer
-            format: int32
+            type: string
         - name: longitude
           in: query
           description: longitude
           schema:
-            type: integer
-            format: int32
+            type: string
       responses:
         '200':
           description: Successful operation
@@ -243,10 +303,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FeedResponse'
-  /api/v1/comment/{postID}:
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/comments/{postID}:
     post:
       tags:
-        - comment
+        - comments
       summary: Add new comment for post
       description: Add new comment for post
       parameters:
@@ -267,7 +333,7 @@ paths:
       responses:
         '200':
           description: Successful operation
-        default:
+        '500':
           description: Unexpected error
           content:
             application/json:
@@ -276,10 +342,10 @@ paths:
       security:
         - travel_hunt_auth:
             - write:post
-  /api/v1/comments/{postID}:
+  /api/v1/comments/feed/{postID}:
     get:
       tags:
-        - comment
+        - comments
       summary: Get post comments
       description: Get post comments
       parameters:
@@ -303,6 +369,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CommentResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           description: Unexpected error
           content:
@@ -342,13 +414,11 @@ components:
           type: string
           example: some long text for post body
         latitude:
-          type: integer
-          format: int64
-          example: latitude of post event
+          type: string
+          example: 2.2945
         longitude:
-          type: integer
-          format: int64
-          example: longitude of post event
+          type: string
+          example: 48.8584
         imageCDNNames:
           type: array
           items:
@@ -365,13 +435,11 @@ components:
           type: string
           example: some long text for post body
         latitude:
-          type: integer
-          format: int64
-          example: latitude of post event
+          type: string
+          example: 2.2945
         longitude:
-          type: integer
-          format: int64
-          example: longitude of post event
+          type: string
+          example: 48.8584
         imageCDNNames:
           type: array
           items:
@@ -383,45 +451,50 @@ components:
         id:
           type: integer
           format: int64
-          example: post ID
+          example: 123
         userID:
           type: integer
           format: int64
-          example: author ID
+          example: 456
         body:
           type: string
           description: post text body
           example: some long text for post body
         latitude:
-          type: integer
-          format: int64
-          example: latitude of post event
+          type: string
+          example: 2.2945
         longitude:
-          type: integer
-          format: int64
-          example: longitude of post event
+          type: string
+          example: 48.8584
         imageCDNNames:
           type: array
           description: list of photo names on CDN
           items:
             type: string
           example: [b112ea39-2734-4ed3-92d4-06d637b3afa6.jpg, 713bd918-6d24-47e6-a353-ded0f809b90a.jpg]
-        reactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/PostReaction'
         commentsCount:
           type: integer
           format: int64
           description: count of post comments
           example: 15
+    PostReactionsResponse:
+      type: object
+      properties:
+        postID:
+          type: integer
+          format: int64
+          example: 123
+        reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostReaction'
     CommentRequest:
       type: object
       properties:
         postID:
           type: integer
           format: int64
-          example: post ID
+          example: 123
         text:
           type: string
           description: comment text body
@@ -432,7 +505,7 @@ components:
         postID:
           type: integer
           format: int64
-          example: post ID
+          example: 123
         type:
           type: string
           description: reaction type
@@ -443,11 +516,11 @@ components:
         userID:
           type: integer
           format: int64
-          example: user ID
+          example: 456
         postID:
           type: integer
           format: int64
-          example: post ID
+          example: 123
         text:
           type: string
           description: comment text body
