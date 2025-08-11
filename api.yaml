@@ -1,0 +1,547 @@
+openapi: 3.0.4
+info:
+  title: Traver Hunt - OpenAPI 3.0
+  version: 0.0.1
+tags:
+  - name: users
+    description: Users operations
+  - name: posts
+    description: Post operations
+  - name: reactions
+    description: Entities reactions
+  - name: feed
+    description: Post feed operations
+  - name: comments
+    description: Post comments operations
+  - name: blobs
+    description: Upload binaries
+paths:
+  /api/v1/blobs/photos/{userID}:
+    post:
+      tags:
+        - blobs
+      summary: Upload new photo
+      description: Upload new photo
+      parameters:
+        - name: userID
+          in: path
+          description: author ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: photo data
+        content:
+          image/jpeg: {}
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoUploadResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:blobs
+  /api/v1/user/subscriptions/{userID}:
+    post:
+      tags:
+        - users
+      summary: Subscribe current user to another user
+      description: Subscribe current user to another user
+      parameters:
+        - name: userID
+          in: path
+          description: author ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:post
+  /api/v1/posts:
+    post:
+      tags:
+        - posts
+      summary: Add a new post
+      description: Add a new post to user feed
+      requestBody:
+        description: Create a new post in user feed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '422':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:post
+    put:
+      tags:
+        - posts
+      summary: Edit post
+      description: Edit user post
+      requestBody:
+        description: Edit user post
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '422':
+          description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:post
+  /api/v1/reactions/posts:
+    post:
+      tags:
+        - reactions
+      summary: Add a new post reaction
+      description: Add a new post reaction
+      requestBody:
+        description: Post reaction request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostReactionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:post
+  /api/v1/reactions/posts/{postID}:
+    get:
+      tags:
+        - reactions
+      summary: Get post reactions
+      description: Get post reactions
+      parameters:
+        - name: postID
+          in: path
+          description: ID of post
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostReactionsResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:reactions
+  /api/v1/posts/{postID}:
+    get:
+      tags:
+        - posts
+      summary: Read single post
+      description: Read single post
+      parameters:
+        - name: postID
+          in: path
+          description: ID of post
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/posts/feed/{userID}:
+    get:
+      tags:
+        - feed
+      summary: User posts feed
+      description: User posts feed
+      parameters:
+        - name: userID
+          in: path
+          description: author ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: page
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/posts/search:
+    get:
+      tags:
+        - feed
+      summary: Searching posts by geo
+      description: Searching posts by geo
+      parameters:
+        - name: page
+          in: query
+          description: page for posts
+          schema:
+            type: integer
+            format: int32
+        - name: latitude
+          in: query
+          description: latitude
+          schema:
+            type: string
+        - name: longitude
+          in: query
+          description: longitude
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/comments/{postID}:
+    post:
+      tags:
+        - comments
+      summary: Add new comment for post
+      description: Add new comment for post
+      parameters:
+        - name: postID
+          in: path
+          description: post ID for commenting
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Upload new photo
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - travel_hunt_auth:
+            - write:post
+  /api/v1/comments/feed/{postID}:
+    get:
+      tags:
+        - comments
+      summary: Get post comments
+      description: Get post comments
+      parameters:
+        - name: postID
+          in: path
+          description: post ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: page for comments
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+    PostReaction:
+      type: object
+      properties:
+        type:
+          type: string
+          example: like
+        reactionsCount:
+          type: integer
+          format: int64
+          example: 10
+    PostCreateRequest:
+      required:
+        - body
+        - latitude
+        - longitude
+      type: object
+      properties:
+        body:
+          type: string
+          example: some long text for post body
+        latitude:
+          type: string
+          example: 2.2945
+        longitude:
+          type: string
+          example: 48.8584
+        imageCDNNames:
+          type: array
+          items:
+            type: string
+          example: [b112ea39-2734-4ed3-92d4-06d637b3afa6.jpg, 713bd918-6d24-47e6-a353-ded0f809b90a.jpg]
+    PostUpdateRequest:
+      required:
+        - body
+        - latitude
+        - longitude
+      type: object
+      properties:
+        body:
+          type: string
+          example: some long text for post body
+        latitude:
+          type: string
+          example: 2.2945
+        longitude:
+          type: string
+          example: 48.8584
+        imageCDNNames:
+          type: array
+          items:
+            type: string
+          example: [b112ea39-2734-4ed3-92d4-06d637b3afa6.jpg, 713bd918-6d24-47e6-a353-ded0f809b90a.jpg]
+    PostResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 123
+        userID:
+          type: integer
+          format: int64
+          example: 456
+        body:
+          type: string
+          description: post text body
+          example: some long text for post body
+        latitude:
+          type: string
+          example: 2.2945
+        longitude:
+          type: string
+          example: 48.8584
+        imageCDNNames:
+          type: array
+          description: list of photo names on CDN
+          items:
+            type: string
+          example: [b112ea39-2734-4ed3-92d4-06d637b3afa6.jpg, 713bd918-6d24-47e6-a353-ded0f809b90a.jpg]
+        commentsCount:
+          type: integer
+          format: int64
+          description: count of post comments
+          example: 15
+    PostReactionsResponse:
+      type: object
+      properties:
+        postID:
+          type: integer
+          format: int64
+          example: 123
+        reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostReaction'
+    CommentRequest:
+      type: object
+      properties:
+        postID:
+          type: integer
+          format: int64
+          example: 123
+        text:
+          type: string
+          description: comment text body
+          example: some long text for comment
+    PostReactionRequest:
+      type: object
+      properties:
+        postID:
+          type: integer
+          format: int64
+          example: 123
+        type:
+          type: string
+          description: reaction type
+          example: like
+    Comment:
+      type: object
+      properties:
+        userID:
+          type: integer
+          format: int64
+          example: 456
+        postID:
+          type: integer
+          format: int64
+          example: 123
+        text:
+          type: string
+          description: comment text body
+          example: some long text for comment
+    CommentResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Comment'
+    FeedResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/PostResponse'
+    PhotoUploadResponse:
+      type: object
+      properties:
+        cdnName:
+          type: string
+          description: photo name in CDN
+          example: b112ea39-2734-4ed3-92d4-06d637b3afa6.jpg
+  securitySchemes:
+    travel_hunt_auth:
+      type: http
+      "scheme": "bearer"
+      "bearerFormat": "JWT"
