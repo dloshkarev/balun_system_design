@@ -51,7 +51,7 @@ paths:
       security:
         - travel_hunt_auth:
             - write:blobs
-  /api/v1/user/subscription/{userID}:
+  /api/v1/user/subscriptions/{userID}:
     post:
       tags:
         - users
